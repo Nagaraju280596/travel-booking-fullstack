@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Booking</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+<header><h1>✈️ Travel Booking</h1><p>Plan your next unforgettable journey</p></header>
+<form id="travelForm">
+<h2>Traveller Details</h2>
+<div class="row">
+<div class="field"><label>Full Name</label><input id="name" required></div>
+<div class="field"><label>Email</label><input type="email" id="email" required></div>
+</div>
+<div class="row">
+<div class="field"><label>Phone</label><input id="phone" required></div>
+<div class="field"><label>Number of Travellers</label><input type="number" id="travelers" min="1" value="1" required></div>
+</div>
+<h2>Travel Details</h2>
+<div class="row">
+<div class="field"><label>From</label><input id="fromLocation" placeholder="Hyderabad" required></div>
+<div class="field"><label>Destination</label><input id="destination" placeholder="Goa" required></div>
+</div>
+<div class="row">
+<div class="field"><label>Travel Date</label><input type="date" id="travelDate" required></div>
+<div class="field"><label>Travel Type</label>
+<select id="travelType"><option>Family</option><option>Solo</option><option>Friends</option><option>Business</option><option>Honeymoon</option></select>
+</div>
+</div>
+<div class="field"><label>Special Requests</label><textarea id="specialRequests"></textarea></div>
+<button type="submit">Book My Trip ✈️</button>
+<div id="message"></div>
+</form>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
