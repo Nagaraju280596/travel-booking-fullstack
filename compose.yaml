@@ -17,6 +17,8 @@ services:
         limits:
           cpus: "1"
           memory: 500M
+    depends_on:
+      - database
   database:
     container_name: dbcont
     build: ./db/
