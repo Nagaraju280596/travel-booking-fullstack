@@ -1,0 +1,44 @@
+---
+services:
+  appilcation:
+    container_name: appcont
+    build: .
+    ports:
+      - "1111:8080"
+    networks:
+      - appnetwork
+    volumes:
+      - appvolume:/app
+    deploy:
+      resources:
+        reservations:
+          cpus: "0.5"
+          memory: 300M
+        limits:
+          cpus: "1"
+          memory: 500M
+  database:
+    container_name: dbcont
+    build: ./db/
+    ports:
+      - "3306:3306"
+    networks:
+      - dbnetwork
+    volumes:
+      - dbvolume:/var/lib/mysql
+    deploy:
+      resources:
+        reservations:
+          cpus: "0.5"
+          memory: 300M
+        limits:
+          cpus: "1"
+          memory: 500M
+networks:
+  appnetwork:
+    driver: bridge
+  dbnetwork:
+    driver: bridge
+volumes:
+  appvolume:
+  dbvolume:  

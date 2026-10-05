@@ -19,3 +19,153 @@ SELECT * FROM travel_details;
 ```
 
 This package intentionally contains no Dockerfile, docker-compose.yml, or Jenkinsfile.
+
+services:
+
+  # =========================
+  # MySQL Database
+  # =========================
+  mysql:
+    image: mysql:8.0
+    container_name: foodfrenzy-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    networks:
+      - foodfrenzy-network
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-p${MYSQL_ROOT_PASSWORD}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    security_opt:
+      - no-new-privileges:true
+
+
+  # =========================
+  # Spring Boot Application
+  # =========================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: foodfrenzy-app:1.0
+
+    container_name: foodfrenzy-app
+
+    restart: unless-stopped
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+
+    expose:
+      - "8080"
+
+    networks:
+      - foodfrenzy-network
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    security_opt:
+      - no-new-privileges:true
+
+
+  # =========================
+  # Nginx Reverse Proxy
+  # =========================
+  nginx:
+    image: nginx:1.27-alpine
+
+    container_name: foodfrenzy-nginx
+
+    restart: unless-stopped
+
+    depends_on:
+      app:
+        condition: service_healthy
+
+    ports:
+      - "80:80"
+      # - "443:443"
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+    networks:
+      - foodfrenzy-network
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+    security_opt:
+      - no-new-privileges:true
+
+
+# =========================
+# Persistent Volumes
+# =========================
+volumes:
+
+  mysql_data:
+    driver: local
+
+
+# =========================
+# Network
+# =========================
+networks:
+
+  foodfrenzy-network:
+    driver: bridge
