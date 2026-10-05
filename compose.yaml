@@ -39,6 +39,7 @@ services:
 networks:
   appnetwork:
     driver: overlay
+    attachable: true
 volumes:
   appvolume:
   dbvolume:  
