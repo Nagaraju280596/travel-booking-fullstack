@@ -2,7 +2,7 @@
 services:
   appilcation:
     container_name: appcont
-    build: .
+    image: nagarajukuruva/traveldbimage
     ports:
       - "1111:8080"
     networks:
@@ -21,7 +21,7 @@ services:
       - database
   database:
     container_name: dbcont
-    build: ./db/
+    image: nagarajukuruva/travelappimage
     ports:
       - "3306:3306"
     networks:
