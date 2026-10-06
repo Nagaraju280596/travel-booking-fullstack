@@ -1,0 +1,68 @@
+pipeline {
+    agent{
+        node{
+            label 'prod'
+        }
+    }
+    tools {
+        maven 'mymaven'
+    }
+
+    stages {
+        stage('code') {
+            steps {
+                git 'https://github.com/Nagaraju280596/travel-booking-fullstack.git'
+            }
+        }
+        stage('build'){
+            steps{
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+        stage('sonar scan'){
+            steps{
+                withSonarQubeEnv('mysonar') {
+                   sh 'mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=myroject'
+               }
+            }
+        }
+        stage('quaily analysis'){
+            steps{
+                waitForQualityGate abortPipeline: true, credentialsId: 'sonartoken'
+            }
+        }
+        stage('afrtifact'){
+            steps{
+                nexusArtifactUploader artifacts: [[artifactId: 'travel-booking', classifier: '', file: 'target/travel-booking.jar', type: 'jar']], credentialsId: 'nexus cred', groupId: 'com.travelbooking', nexusUrl: '13.50.226.248:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'myrepo', version: '1.0.0'
+            }
+        }
+        stage('images'){
+            steps{
+                sh 'docker build -t travelappimage .'
+                sh 'docker build -t traveldbimage db'
+            }
+        }
+        stage('trivy scan'){
+            steps{
+                sh 'trivy image travelappimage >> appimage.txt'
+                sh 'trivy image traveldbimage >> dbimage.txt'
+            }
+        }
+        stage('push images'){
+            steps{
+                withDockerRegistry(credentialsId: 'dockerhub') {
+                    sh 'docker tag traveldbimage nagarajukuruva/traveldbimage:latest'
+                    sh 'docker tag travelappimage nagarajukuruva/travelappimage:latest'
+                    sh 'docker push nagarajukuruva/travelappimage:latest'
+                    sh 'docker push nagarajukuruva/traveldbimage:latest'
+                }
+                
+            }
+        }
+        stage('deploy'){
+            steps{
+                sh 'docker stack deploy mynewapp --compose-file=compose.yaml'
+            }
+        }
+    }
+}
