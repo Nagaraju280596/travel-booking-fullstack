@@ -1,8 +1,7 @@
----
 services:
-  appilcation:
-    container_name: appcont
-    build: .
+
+  application:
+    image: nagarajukuruva/travelappimage:latest
     ports:
       - "1111:8080"
     networks:
@@ -10,6 +9,7 @@ services:
     volumes:
       - appvolume:/app
     deploy:
+      replicas: 1
       resources:
         reservations:
           cpus: "0.5"
@@ -19,9 +19,9 @@ services:
           memory: 500M
     depends_on:
       - database
+
   database:
-    container_name: dbcont
-    build: ./db/
+    image: nagarajukuruva/traveldbimage:latest
     ports:
       - "3306:3306"
     networks:
@@ -29,6 +29,7 @@ services:
     volumes:
       - dbvolume:/var/lib/mysql
     deploy:
+      replicas: 1
       resources:
         reservations:
           cpus: "0.5"
@@ -36,10 +37,12 @@ services:
         limits:
           cpus: "1"
           memory: 500M
+
 networks:
   appnetwork:
     driver: overlay
     attachable: true
+
 volumes:
   appvolume:
-  dbvolume:  
+  dbvolume:
