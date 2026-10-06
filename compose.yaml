@@ -1,7 +1,6 @@
 ---
 services:
   appilcation:
-    container_name: appcont
     image: nagarajukuruva/traveldbimage:latest
     ports:
       - "1111:8080"
@@ -20,7 +19,6 @@ services:
     depends_on:
       - database
   database:
-    container_name: dbcont
     image: nagarajukuruva/travelappimage:latest
     ports:
       - "3306:3306"
